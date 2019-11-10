@@ -1,0 +1,11 @@
+drive_day*/
+__pycache__/
+.pytest_cache/
+.vscode/
+*.odt
+*.odt#
+libdarknet.so
+literature/
+runs/
+PyTorch-YOLOv3/output/
+PyTorch-YOLOv3/__pycache__/
