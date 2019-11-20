@@ -6,9 +6,9 @@ from PIL import Image, ImageTk
 import numpy as np
 
 def sort_data():
-    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/fl_rgb"
-    dst0 = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/test2/inactive"
-    dst1 = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/test2/active/"
+    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_42_32/fl_rgb"
+    dst0 = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/test_combined/inactive"
+    dst1 = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/test_combined/active/"
 
     # list_0: 82/661 = 12,41%
     # list_1: 579/661 = 87,59%
@@ -139,9 +139,9 @@ def delete_false_dets():
 
 
 if __name__ == "__main__":
-    #sort_data()
+    sort_data()
     #show_data()
     #rand_data()
     #rename_paths()
-    delete_false_dets()
+    #delete_false_dets()
 

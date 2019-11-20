@@ -9,3 +9,4 @@ literature/
 runs/
 PyTorch-YOLOv3/output/
 PyTorch-YOLOv3/__pycache__/
+*.ods

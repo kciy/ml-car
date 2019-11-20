@@ -23,9 +23,7 @@ def normalize(disp_cv, range_min, range_max):
 
 def visIr(data, name, min_value, max_value, min_val=20000):
     disp_cv = data.cpu().data.numpy().squeeze()
-    print(disp_cv.shape)
     disp_cv = normalize(disp_cv, min_value, max_value)
-    print(disp_cv.shape)
     #cv2.imshow(name, disp_cv)
     return disp_cv
 
