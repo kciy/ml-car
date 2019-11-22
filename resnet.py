@@ -8,6 +8,9 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torchvision import datasets, transforms, models
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import f1_score
+from sklearn.metrics import classification_report
 from IRDataset import IRDataset
 import sys
 from PIL import Image
@@ -66,8 +69,8 @@ for param in model.parameters():
     param.requires_grad = False
 
 num_features = model.fc.in_features
-for name, child in model.named_children():
-    print(name)
+#for name, child in model.named_children():
+#    print(name)
 
 model.fc = nn.Sequential(nn.Linear(512, 512),
                                  nn.ReLU(),
@@ -76,15 +79,20 @@ model.fc = nn.Sequential(nn.Linear(512, 512),
                                  nn.LogSoftmax(dim=1))
                     
 error = nn.NLLLoss()  # negative log-likelihood
-optimizer = optim.SGD(model.fc.parameters(), lr=1e-2, momentum=0.9)
+optimizer = optim.SGD(model.fc.parameters(), lr=1e-2, momentum=0.9) # adam
+# learning rate scheduler (da wo die Kurve auf ein Plateau kommt LR halbieren)
 model.to(device)
 
-num_epochs = 20
+num_epochs = 100
 batch_size = 1
 
 loss_list = []
 iteration_list = []
 accuracy_list = []
+precision_list = []
+recall_list = []
+f1_list = []
+
 step = 0
 for epoch in range(num_epochs):
     for i, batch in enumerate(trainloader):
@@ -97,6 +105,7 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
         step += 1
+
         if step % 50 == 0:
             correct = 0
             total = 0
@@ -108,23 +117,35 @@ for epoch in range(num_epochs):
                     images, labels = images.to(device), labels.to(device)
                     outputs = model.forward(images)
                     predicted = torch.argmax(outputs.data, 1)
-                    print(f"predicted (argmax) {predicted} ?= {labels} labels")
                     total += labels.size(0)
                     correct += (predicted == labels).sum()
+                    
+                    precision, recall, fbeta, support = precision_recall_fscore_support(labels, predicted)
+                    f1 = f1_score(labels, predicted, pos_label=1, average='binary')
+                    precision_list.append(precision)
+                    recall_list.append(recall)
+                    f1_list.append(f1)
+                    #print(classification_report(labels, predicted))
+
                 accuracy = 100 * correct / float(total)
                 # print(f"accuracy ({accuracy}) = 100 * correct ({correct}) / total ({float(total)})")
 
                 vis.plot_loss(np.mean(loss_list), step)
                 vis.plot_acc(accuracy, step)
+                vis.plot_acc_mean(np.mean(accuracy_list), step)
+                vis.plot_precision(np.mean(precision_list), step)
+                vis.plot_recall(np.mean(recall_list), step)
+                vis.plot_f1(np.mean(f1_list), step)
 
                 loss_list.append(loss.data)
                 iteration_list.append(step)
                 accuracy_list.append(accuracy)
-                
+            # print(f"Precision: {precision}, Recall: {recall}, F1: {f1}, Fbeta: {fbeta}, Support: {support}")
             print(f"Epoch {epoch+1}/{num_epochs}, It. {step}, Train error: {loss.item()}, Test accuracy: {accuracy}%")
+            print('------------')
             model.train()
 
-torch.save(model, 'ActiveCarModel1.pth')
+torch.save(model, 'ActiveCarModel5.pth')
 
 plt.plot(loss_list, label='Train Loss')
 plt.plot(accuracy_list, label='Test Accuracy')
