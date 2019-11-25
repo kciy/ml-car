@@ -8,17 +8,22 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torchvision import datasets, transforms, models
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
-from sklearn.metrics import classification_report
 from IRDataset import IRDataset
 import sys
 from PIL import Image
 import cv2
+import wandb
 from visdom import Visdom
 from vis import Visualizations
 
 data_dir = 'drive_day_2019_08_21_16_14_06/test_combined' # 1263 images
+
+wandb.init(project="active-car-project")
+wandb.config["more"] = "custom"
 
 image_transforms = transforms.Compose([
                                     transforms.ToPILImage(),
@@ -56,7 +61,7 @@ dset = IRDataset(data_dir, transform=image_transforms)
 print('Number of images: ', len(dset))
 print('Number of categories: ', len(dset.categories))
 
-trainloader, testloader = load_split_train_test(data_dir, 0.2)
+trainloader, testloader = load_split_train_test(data_dir, 0.1)
 
 images, labels = next(iter(trainloader))
 model = torchvision.models.resnet18(pretrained=True)
@@ -84,7 +89,7 @@ optimizer = optim.SGD(model.fc.parameters(), lr=1e-2, momentum=0.9) # adam
 model.to(device)
 
 num_epochs = 100
-batch_size = 1
+batch_size = 10
 
 loss_list = []
 iteration_list = []
@@ -120,15 +125,19 @@ for epoch in range(num_epochs):
                     total += labels.size(0)
                     correct += (predicted == labels).sum()
                     
-                    precision, recall, fbeta, support = precision_recall_fscore_support(labels, predicted)
-                    f1 = f1_score(labels, predicted, pos_label=1, average='binary')
+                    accuracy = accuracy_score(labels, predicted)  # (tp + tn) / (tp + fp + tn + fn)
+                    precision = precision_score(labels, predicted)  # tp / (tp + fp)
+                    recall = recall_score(labels, predicted)  # tp / (tp + fn)
+                    f1 = f1_score(labels, predicted)  # 2tp / (2tp + fp + fn)
+
+                    accuracy_list.append(accuracy)
                     precision_list.append(precision)
                     recall_list.append(recall)
                     f1_list.append(f1)
-                    #print(classification_report(labels, predicted))
 
                 accuracy = 100 * correct / float(total)
-                # print(f"accuracy ({accuracy}) = 100 * correct ({correct}) / total ({float(total)})")
+
+                wandb.log({"epoch": epoch, "loss": np.mean(loss_list), "accuracy mean": np.mean(accuracy_list), "precision": np.mean(precision_list), "recall": np.mean(recall_list), "f1": np.mean(f1_list)}, step=step)
 
                 vis.plot_loss(np.mean(loss_list), step)
                 vis.plot_acc(accuracy, step)
@@ -140,7 +149,6 @@ for epoch in range(num_epochs):
                 loss_list.append(loss.data)
                 iteration_list.append(step)
                 accuracy_list.append(accuracy)
-            # print(f"Precision: {precision}, Recall: {recall}, F1: {f1}, Fbeta: {fbeta}, Support: {support}")
             print(f"Epoch {epoch+1}/{num_epochs}, It. {step}, Train error: {loss.item()}, Test accuracy: {accuracy}%")
             print('------------')
             model.train()

@@ -6,13 +6,12 @@ from PIL import Image, ImageTk
 import numpy as np
 
 def sort_data():
-    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_42_32/fl_rgb"
-    dst0 = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/test_combined/inactive"
-    dst1 = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/test_combined/active/"
-
-    # list_0: 82/661 = 12,41%
-    # list_1: 579/661 = 87,59%
-    # 29 false detections => 690 folders in total
+    '''
+    copy all data in folders from the fl_rgb folder to inactive and active folders
+    '''
+    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_20_06_52/fl_rgb"
+    dst0 = "/home/viki/Documents/Informatik/BA/drive_all_night/inactive/"
+    dst1 = "/home/viki/Documents/Informatik/BA/drive_all_night/active/"
 
     sub_dirs = [x[0] for x in os.walk(src)]
     list_0 = []
@@ -25,6 +24,7 @@ def sort_data():
                 with open(filename, 'rb') as f:
                     last_char = str(f.read())[-2]
                     ir = filename.replace('det.txt', 'ir.det.png')
+                    # print(ir)
                     if last_char == "0":
                         list_0.append(ir)
                     if last_char == "1":
@@ -32,13 +32,13 @@ def sort_data():
     print(len(list_0))
     print(len(list_1))
     for f in list_0:
-        fooo = f.split("/")[-1]
-        #print(f)
-        #print(os.path.join(dst0, fooo))
-        shutil.copy(f, os.path.join(dst0, fooo))
+        file0 = f.split("/")[-1]
+        #dst = os.path.join(dst0, file0)
+        shutil.copy(f, dst0)
     for f in list_1:
-        foo = f.split("/")[-1]
-        shutil.copy(f, os.path.join(dst1, foo))
+        file1 = f.split("/")[-1]
+        #dst = os.path.join(dst1, file1)
+        shutil.copy(f, dst1)
         
 
 def normalize(scale_min, ir_path):
@@ -68,9 +68,12 @@ def show_data():
                 if key == 27:
                     cv2.destroyAllWindows()
 
-def rand_data(size=0.15):
-    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_42_32/fr_ir"
-    dst = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_for_test"
+def rand_data(subset_size=0.2):
+    '''
+    Move randomized data of size subset_size (%) from src to dst
+    '''
+    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/fr_ir"
+    dst = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06_val/fr_ir"
     sub_dirs = [x[0] for x in os.walk(src)]
     all_files = []
     for folder in sub_dirs:
@@ -79,18 +82,31 @@ def rand_data(size=0.15):
             all_files.append(filename)
     len_files = len(all_files)
     indices = list(range(len_files))
-    split = int(np.floor(size * len_files))
+    split = int(np.floor(subset_size * len_files))
     np.random.shuffle(indices)
 
-    train_set, test_set = indices[split:], indices[:split]
-    for idx in test_set:
+    train_set, sub_set = indices[split:], indices[:split]
+    print(len(sub_set))
+    for idx in sub_set:
         print(all_files[idx])
         shutil.copy(all_files[idx], dst)
         os.remove(all_files[idx])
     print("Done")
 
 def rename_paths():
-    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_42_32/paths_original"
+    #src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_42_32/paths_original"
+    #src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_52_31/paths_original"
+    #src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_18_02_31/paths_original"
+    #src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_18_12_31/paths_original"
+    #src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_18_22_31/paths_original"
+    #src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_19_46_53/paths_original"
+    #src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_19_56_52/paths_original"
+    #src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_20_06_52/paths_original"
+    #src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_20_16_52/paths_original"
+    #src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_20_26_53/paths_original"
+    #src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_20_36_52/paths_original"
+    src = ""
+    
     all_files = []
     for file in os.listdir(src):
         filename = os.path.join(src, file)
@@ -98,7 +114,8 @@ def rename_paths():
     for txt in all_files:
         fin = open(txt, "rt")
         data = fin.read()
-        data = data.replace("vertensj/Documents/robocar_bags/dumped/10_10_19_day", "viki/Documents/Informatik/BA")
+        # data = data.replace("vertensj/Documents/robocar_bags/dumped/10_10_19_day", "viki/Documents/Informatik/BA")
+        data = data.replace("vertensj/Documents/robocar_bags/dumped/10_10_19_night", "viki/Documents/Informatik/BA")
         fin.close()
 
         fin = open(txt, "wt")
@@ -107,34 +124,43 @@ def rename_paths():
         print("Done")
     
 def delete_false_dets():
-    src0 = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/fl_rgb/train/active/"
-    src1 = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/test2/fl_rgb/train/inactive/"
-    src2 = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_42_32/fl_rgb/"
-
-    txt = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_42_32/fl_rgb/false_detected.txt"
+    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_20_26_53/fl_rgb/"
+    txt = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_20_26_53/fl_rgb/false_detected.txt"
 
     fin = open(txt, "r")
     lines = fin.readlines()
     i = 0
     for line in lines:
         name = line.split('/')[-1]
-        filename0 = src2 + name
-        filename0 = filename0[:-11]
-        filename0 = filename0 + '.png'
-        filename1 = src2 + name
-        filename1 = filename1[:-11]
-        filename1 = filename1 + '.png'
-        print(filename0)
-        if os.path.exists(filename0):
-            os.remove(filename0)
-            print("yep 0")
-        elif os.path.exists(filename1):
-            os.remove(filename1)
-            print("yep 1")
+        # print(name)
+        filename = name[:-9]
+        folder = name[:-11]
+        file = src + folder + '/' + filename + '.det.png'
+        filenametxt = src + folder + '/' + filename + '.det.txt'
+        irfile = src + folder + '/' + filename + '.ir.det.png'
+        
+        # print(file)
+        # print(filenametxt)
+        # print(irfile)
+        
+        if os.path.exists(file):
+            os.remove(file)
+            # print("Yep png")
         else:
-            print("Nope")
+            print("Nope png")
+        if os.path.exists(filenametxt):
+            os.remove(filenametxt)
+            # print("Yep txt")
+        else:
+            print("Nope txt")
+        if os.path.exists(irfile):
+            os.remove(irfile)
+            # print("Yep ir")
+        else:
+            print("Nope ir")
+        
         i += 1
-        print(f"Done {i}/{len(lines)+1}")
+        print(f"Done {i}/{len(lines)}")
 
 
 

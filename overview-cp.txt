@@ -1,0 +1,38 @@
+/export/
+16_14_06_day
+    16_14_06 cp & det & labels => 661 cars/2515 images (26.28%) & training1 & moved
+10_10_19_day
+    17_42_32 cp & det & labels => 606 cars/2087 images (29.04%) & training1 & moved
+    17_52_31 cp & det & labels => 956 cars/2385 images (40.08%) & moved
+        insecure: fl_rgb_1570723229_541838160_0.det.png
+                  fl_rgb_1570723218_3536216560_0.det.png
+                  fl_rgb_1570723080_4782003840_2.det.png
+                  fl_rgb_1570723219_5431998160_1.det.png
+    18_02_31 cp & det & labels => 937 cars/2500 images (37.48%) & moved
+    18_12_31 cp & /home/ & det & labels => 449 cars/2275 images (19.74%) & moved
+    18_22_31 cp & /home/ & det & labels => 62 cars/670 images (9.25%) & moved
+10_10_19_night
+    19_46_53 cp & /home/ & det & labels => 303 cars/2510 images (12.07%) & moved
+    19_56_52 cp & /home/ & det & labels => 146 cars/2505 images (5.83%) & moved
+    20_06_52 cp & /home/ & det & labels => 183 cars/2495 images (7.33%) & moved
+    20_16_52 cp & /home/ & det & labels => 5 cars/2490 images (0.20%) & moved
+    20_26_53 cp & /home/ & det & labels => 160 cars/2445 images (6.54%) & moved
+    20_36_52 cp & /home/ & det & labels => 22 cars/1555 images (1.41%) & moved
+
+Day: 
+    Total: 3671 
+    Inactive: 621 (16.92%)
+    Active: 3023 (82.35%)
+Night:
+    Total: 819
+    Inactive: 169 (20.63%)
+    Active: 650 (79.37%)
+
+ActiveCarModel
+1: num_epochs=20,  lr=1e-3, batch_size=10, optim=SGD, valid_size=0.2 (training1)
+2: num_epochs=100, lr=1e-3, batch_size=10, optim=SGD, valid_size=0.2 (training1)
+3: num_epochs=100, lr=1e-3, batch_size=10, optim=SGD, valid_size=0.2 (training1)
+4: num_epochs=100, lr=1e-2, batch_size=10, optim=SGD, valid_size=0.2 (training1)
+
+copy files from pearl:
+scp -o ProxyJump=schwarzv@aislogin.informatik.uni-freiburg.de schwarzv@pearl2:/home/schwarzv/... /home/viki/...

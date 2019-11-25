@@ -24,8 +24,8 @@ def saveCropped(rgb_path, nr, x1, y1, x2, y2, cls_conf=None, kitti=False):
         True if kitti weights and data are used
     '''
     base = os.path.basename(rgb_path)
-    ir_path = rgb_path.replace('rgb', 'ir_aligned') # for path_left
-    #ir_path = rgb_path.replace('rgb', 'ir') # for path_right
+    ir_path = rgb_path.replace('rgb', 'ir_aligned')
+    # ir_path = rgb_path.replace('rgb', 'ir')
     img_name = os.path.splitext(base)[0]
     img_dir = os.path.dirname(rgb_path) + '/' + img_name
     img_dir_ir = os.path.dirname(rgb_path) + '/' + img_name
@@ -41,6 +41,7 @@ def saveCropped(rgb_path, nr, x1, y1, x2, y2, cls_conf=None, kitti=False):
     # only save if both RGB and IR exist and mask
     if not os.path.isfile(rgb_path) or not os.path.isfile(ir_path):
         #print(f'{ir_path} does not exist')
+        print('ir path doesnt exist')
         return
     
     dpi = 200.0
@@ -60,6 +61,9 @@ def saveCropped(rgb_path, nr, x1, y1, x2, y2, cls_conf=None, kitti=False):
     # crop and show IR
     ir = cv2.imread(ir_path, cv2.IMREAD_ANYDEPTH)
     cropped_ir = ir[y1:y2, x1:x2]
+    if cropped_ir[0].size == 0:
+        print('zero size')
+        return
     
     if not irCoveredMask(cropped_ir):
         return

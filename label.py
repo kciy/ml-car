@@ -11,11 +11,11 @@ class ImageClassifier(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
 
         self.window = parent
-        self.window.wm_title("Classify image")
+        self.window.wm_title("Classify images")
         self.counter = 0
+        self.rect = []
         
-        self.src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_42_32/fl_rgb/"
-        # self.src = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/fl_rgb/"
+        self.src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_20_06_52/fl_rgb/"
         self.list_images = []
         for (dirpath, dirnames, filenames) in os.walk(self.src):
             for filename in filenames:
@@ -98,6 +98,8 @@ class ImageClassifier(tk.Frame):
         self.window.bind('d', lambda v: self.next_image())
     
     def classify(self, label):
+        # append label in txt file
+
         path = "{}/{}".format(self.list_images[self.counter-2][0], self.list_images[self.counter-2][1])
         txt_path = path.replace('png', 'txt')
         length = 0
@@ -179,6 +181,7 @@ class ImageClassifier(tk.Frame):
             image = image.resize(size(image, True), Image.ANTIALIAS)
             self.vidphoto = ImageTk.PhotoImage(image)
             self.vidimage = self.cv4.create_image(0, 0, anchor="nw", image=self.vidphoto)
+            # self.cv4.create_rectangle(get_rect(self.images[0]), outline="red")
             self.which = 1
             self.window.after(100, self.change_photo)
 
@@ -246,7 +249,7 @@ class ImageClassifier(tk.Frame):
         self.cv2.create_image(0, 0, anchor="nw", image=self.new_overlay)
     
     def build_img_list(self):
-        # makes self.images, a list of 4 images for cv4 (original big RGB images)
+        # makes self.images a list of 4 images for cv4 (original big RGB images)
 
         list_dir = os.listdir(self.src)
         sorted_list_dir = sorted(list_dir)
@@ -258,6 +261,8 @@ class ImageClassifier(tk.Frame):
             image_list = []
             for i in range(4):
                 img_name = "{}/{}".format(pre_name, sorted_list_dir[idx+i])
+                if not img_name.endswith('.png'):
+                    img_name += '.png'
                 image_list.append(img_name)
             self.images = image_list
 
@@ -267,15 +272,19 @@ class ImageClassifier(tk.Frame):
         self.switch = True
         if self.which == 0:
             self.image = Image.open(self.images[0])
+            # self.cv4.create_rectangle(get_rect(self.images[0]), outline="red")
             self.which = 1
         elif self.which == 1:
             self.image = Image.open(self.images[1])
+            # self.cv4.create_rectangle(get_rect(self.images[1]), outline="red")
             self.which = 2
         elif self.which == 2:
             self.image = Image.open(self.images[2])
+            # self.cv4.create_rectangle(get_rect(self.images[2]), outline="red")
             self.which = 3
         else:
             self.image = Image.open(self.images[3])
+            # self.cv4.create_rectangle(get_rect(self.images[3]), outline="red")
             self.which = 0
             self.switch = False
         
@@ -311,7 +320,21 @@ def normalize(scale_min, scale_max, ir_path):
     im_cv = cv2.bitwise_not(im_cv) # reverse colormap
 
     return im_cv
-        
+
+def get_rect(image_path):
+    # returns coordinates of car rectangle
+
+    folder = image_path.split('/')[8]
+    folder = folder.split('.')[0]
+    txt_path = image_path.replace('.png', '/' + folder + '_0.det.txt')
+    length = 0
+    rect = ()
+    for el in open(txt_path, "r").read().split():
+        length += 1
+        if length >= 3 and length < 7:
+            rect = rect + (int(el)-80,)
+    print(rect)
+    return rect
 
 if __name__ == "__main__":
     window = tk.Tk()

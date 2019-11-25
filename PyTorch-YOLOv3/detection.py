@@ -14,12 +14,13 @@ from PIL import Image
 from torch.autograd import Variable
 
 loader = thermal_loader.ThermalDataLoader(
-    "../drive_day_2019_10_10_17_42_32/paths", load_aligned_ir=True)
-    # "../drive_day_2019_08_21_16_14_06/paths", load_aligned_ir=True)
+    "../drive_day_2019_10_10_20_06_52/paths_original", load_aligned_ir=True)
 train_loader = torch.utils.data.DataLoader(loader, batch_size=1, shuffle=False, num_workers=1,
                                            pin_memory=True, drop_last=True)
-config_path = 'config/yolov3-kitti.cfg'
-weights_path = 'weights/yolov3-kitti.weights'
+# config_path = 'config/yolov3-kitti.cfg'
+# weights_path = 'weights/yolov3-kitti.weights'
+config_path = 'config/yolov3.cfg'
+weights_path = 'weights/yolov3.weights'
 class_path = 'data/coco.names'
 img_size = 416
 conf_thres = 0.85
@@ -56,6 +57,7 @@ def detectImage(img):
         detections = utils.non_max_suppression(detections, conf_thres, nms_thres)
     return detections[0]
 
+i = 0
 
 def detect(rgb_path, offset_rel=0.4):
     '''
@@ -69,6 +71,10 @@ def detect(rgb_path, offset_rel=0.4):
     # load image and get detections
     prev_time = time.time()
     img = Image.open(rgb_path)
+    global i
+    # print(rgb_path)
+    print(i)
+    i += 1
     detections = detectImage(img)
     inference_time = datetime.timedelta(seconds=time.time() - prev_time)
     #print('Inference Time: %s' % (inference_time))
@@ -79,9 +85,12 @@ def detect(rgb_path, offset_rel=0.4):
     unpad_h = img_size - pad_y
     unpad_w = img_size - pad_x
     if detections is not None:
+        print('detections is not None')
         nr = 0
         for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
-            if classes[int(cls_pred)] == "car":
+            if classes[int(cls_pred)] == "car":# or classes[int(cls_pred)] == "person":
+                print(classes[int(cls_pred)])
+                print(float(cls_conf))
                 box_h = ((y2 - y1) / unpad_h) * img.shape[0]
                 box_w = ((x2 - x1) / unpad_w) * img.shape[1]
                 offset_w = box_w * offset_rel
@@ -108,11 +117,8 @@ for nr, (out_dict) in enumerate(train_loader):
     ir_fl = out_dict['ir_fl']
     ir_fr = out_dict['ir_fr']
     paths_left = out_dict['paths_left']
-    #paths_right = out_dict['paths_right']
     org_left = out_dict['org_left']
 
     for i in range(len(paths_left)):
         rgb_path_left = paths_left[i][0]
-        #rgb_path_right = paths_right[i][0]
         detect(rgb_path_left)
-        #detect(rgb_path_right)
