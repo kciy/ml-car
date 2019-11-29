@@ -9,9 +9,9 @@ def sort_data():
     '''
     copy all data in folders from the fl_rgb folder to inactive and active folders
     '''
-    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_20_06_52/fl_rgb"
-    dst0 = "/home/viki/Documents/Informatik/BA/drive_all_night/inactive/"
-    dst1 = "/home/viki/Documents/Informatik/BA/drive_all_night/active/"
+    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_42_32/fl_rgb"
+    dst0 = "/home/viki/Documents/Informatik/BA/drive_all_day/inactive/"
+    dst1 = "/home/viki/Documents/Informatik/BA/drive_all_day/active/"
 
     sub_dirs = [x[0] for x in os.walk(src)]
     list_0 = []
@@ -72,8 +72,8 @@ def rand_data(subset_size=0.2):
     '''
     Move randomized data of size subset_size (%) from src to dst
     '''
-    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/fr_ir"
-    dst = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06_val/fr_ir"
+    src = "/home/viki/Documents/Informatik/BA/drive_all_day/active"
+    dst = "/home/viki/Documents/Informatik/BA/drive_all_day_test_20/active"
     sub_dirs = [x[0] for x in os.walk(src)]
     all_files = []
     for folder in sub_dirs:
@@ -86,7 +86,8 @@ def rand_data(subset_size=0.2):
     np.random.shuffle(indices)
 
     train_set, sub_set = indices[split:], indices[:split]
-    print(len(sub_set))
+    # print(len(train_set))
+    # print(len(sub_set))
     for idx in sub_set:
         print(all_files[idx])
         shutil.copy(all_files[idx], dst)
@@ -165,9 +166,9 @@ def delete_false_dets():
 
 
 if __name__ == "__main__":
-    sort_data()
+    # sort_data()
     #show_data()
-    #rand_data()
+    rand_data()
     #rename_paths()
     #delete_false_dets()
 

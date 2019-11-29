@@ -4,10 +4,25 @@ import numpy as np
 import os
 import sys
 import tkinter as tk
+import argparse
 
 
 class ImageClassifier(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent, src, *args, **kwargs):
+        '''
+        Directory structure of src:
+        folder1 with rgb name (e.g. fl_rgb_1570722157_2840648400; endings _0 indicate index of detection)
+        > rgb_name_0.det.png (cropped)
+        > ir_name_0.ir.det.png (cropped)
+        > txt_name_0.det.txt (of length 6 or 7: 7th element is label 0 or 1)
+        folder2 with rgb name
+        > rgb...
+        > ir...
+        > txt...
+        etc.
+        IN THE SAME SRC DIRECTORY
+        fl_rgb_1570722157_2840648400.png (all original rgb images)
+        '''
         tk.Frame.__init__(self, parent, *args, **kwargs)
 
         self.window = parent
@@ -15,7 +30,7 @@ class ImageClassifier(tk.Frame):
         self.counter = 0
         self.rect = []
         
-        self.src = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_20_06_52/fl_rgb/"
+        self.src = src
         self.list_images = []
         for (dirpath, dirnames, filenames) in os.walk(self.src):
             for filename in filenames:
@@ -54,6 +69,8 @@ class ImageClassifier(tk.Frame):
         label0Button.grid(row=1, column=3, padx=2, pady=2, sticky=tk.N)
         label1Button = tk.Button(self.window, text="1: active", height=2, width=8, command=lambda: self.classify(1))
         label1Button.grid(row=1, column=4, padx=2, pady=2, sticky=tk.N)
+        label2Button = tk.Button(self.window, text="2: undecided", height=2, width=8, command=lambda: self.classify(2))
+        label2Button.grid(row=1, column=3, padx=2, pady=2)
         nextButton = tk.Button(self.window, text="next >>", height=2, width=8, command=self.next_image)
         nextButton.grid(row=0, column=4, padx=2, pady=2)
         prevButton = tk.Button(self.window, text="<< prev", height=2, width=8, command=self.prev_image)
@@ -67,7 +84,7 @@ class ImageClassifier(tk.Frame):
         repeatButton = tk.Button(self.window, text="repeat", height=2, width=8, command=lambda: self.change_photo())
         repeatButton.grid(row=2, column=3, padx=2, pady=2, sticky=tk.N)
         falseButton = tk.Button(self.window, text="false detection", height=2, width=16, command=lambda: self.false_detection())
-        falseButton.grid(row=1, column=3, columnspan=2, padx=2, pady=2)
+        falseButton.grid(row=1, column=3, padx=2, pady=2, sticky=tk.S)
         imgLabel = tk.Label(self.window, textvariable=self.textVar, font="Helvetica 12 bold")
         imgLabel.grid(row=0, column=0, padx=2, pady=2)
         countLabel = tk.Label(self.window, textvariable=self.countVar, font="Helvetica 12 bold")
@@ -78,10 +95,10 @@ class ImageClassifier(tk.Frame):
         self.update_label()
         self.next_image()
 
-        # by capital letters
         self.window.bind('<Escape>', self.close)
         self.window.bind('0', lambda v: self.classify(0))
         self.window.bind('1', lambda v: self.classify(1))
+        self.window.bind('2', lambda v: self.classify(2))
         self.window.bind('r', lambda v: self.change_photo()) # repeat
         self.window.bind('f', lambda v: self.false_detection())
 
@@ -96,6 +113,7 @@ class ImageClassifier(tk.Frame):
         self.window.bind('a', lambda v: self.prev_image())
         self.window.bind('s', lambda v: self.classify(0))
         self.window.bind('d', lambda v: self.next_image())
+        self.window.bind('y', lambda v: self.classify(2))
     
     def classify(self, label):
         # append label in txt file
@@ -134,12 +152,14 @@ class ImageClassifier(tk.Frame):
         self.countVar.set('{} out of {}'.format(str(count+1), len(self.list_images)))
     
     def false_detection(self):
+        # saved rgb_path to a txt file in src (cannot be undone, can be double)
+
         dir_name = self.list_images[self.counter-1][0].rsplit("/", 1)[0]
         txt_save_dir = f"{dir_name}/false_detected.txt"
         path = "{}/{}".format(self.list_images[self.counter-2][0], self.list_images[self.counter-2][1])
         self.labelVar.set('false detection registered')
         with open(txt_save_dir, "a") as txt_file:
-            print(f"{path}", file=txt_file) # saves rgb path
+            print(f"{path}", file=txt_file)
 
     def change_overlay(self, scale=False):
         if scale is True:
@@ -190,6 +210,7 @@ class ImageClassifier(tk.Frame):
             self.next_step(width, height)
     
     def prev_image(self):
+        # goes back 2 steps to show previous image
         self.counter -= 2
         self.next_image()
 
@@ -249,7 +270,7 @@ class ImageClassifier(tk.Frame):
         self.cv2.create_image(0, 0, anchor="nw", image=self.new_overlay)
     
     def build_img_list(self):
-        # makes self.images a list of 4 images for cv4 (original big RGB images)
+        # makes self.images a list of 4 images for cv4 (original big RGB images, must be in the same directory as src)
 
         list_dir = os.listdir(self.src)
         sorted_list_dir = sorted(list_dir)
@@ -272,19 +293,15 @@ class ImageClassifier(tk.Frame):
         self.switch = True
         if self.which == 0:
             self.image = Image.open(self.images[0])
-            # self.cv4.create_rectangle(get_rect(self.images[0]), outline="red")
             self.which = 1
         elif self.which == 1:
             self.image = Image.open(self.images[1])
-            # self.cv4.create_rectangle(get_rect(self.images[1]), outline="red")
             self.which = 2
         elif self.which == 2:
             self.image = Image.open(self.images[2])
-            # self.cv4.create_rectangle(get_rect(self.images[2]), outline="red")
             self.which = 3
         else:
             self.image = Image.open(self.images[3])
-            # self.cv4.create_rectangle(get_rect(self.images[3]), outline="red")
             self.which = 0
             self.switch = False
         
@@ -321,22 +338,11 @@ def normalize(scale_min, scale_max, ir_path):
 
     return im_cv
 
-def get_rect(image_path):
-    # returns coordinates of car rectangle
-
-    folder = image_path.split('/')[8]
-    folder = folder.split('.')[0]
-    txt_path = image_path.replace('.png', '/' + folder + '_0.det.txt')
-    length = 0
-    rect = ()
-    for el in open(txt_path, "r").read().split():
-        length += 1
-        if length >= 3 and length < 7:
-            rect = rect + (int(el)-80,)
-    print(rect)
-    return rect
-
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s', '--src', action='store', dest='src', help='Absolute path of src directory with images.')
+    args = parser.parse_args()
+
     window = tk.Tk()
-    MyApp = ImageClassifier(window)
+    MyApp = ImageClassifier(window, args.src)
     tk.mainloop()
