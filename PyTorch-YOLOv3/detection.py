@@ -13,10 +13,20 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from torch.autograd import Variable
 
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-p', '--path', action='store', dest='path', help='The relative path of the data folder to be detected.')
+args = parser.parse_args()
+path = args.path
+
 loader = thermal_loader.ThermalDataLoader(
-    "../drive_day_2019_10_10_20_06_52/paths_original", load_aligned_ir=True)
+    path, load_aligned_ir=True)
 train_loader = torch.utils.data.DataLoader(loader, batch_size=1, shuffle=False, num_workers=1,
                                            pin_memory=True, drop_last=True)
+
+#../drive_day_2019_10_10_20_06_52/paths_original
+
 # config_path = 'config/yolov3-kitti.cfg'
 # weights_path = 'weights/yolov3-kitti.weights'
 config_path = 'config/yolov3.cfg'
@@ -59,7 +69,7 @@ def detectImage(img):
 
 i = 0
 
-def detect(rgb_path, offset_rel=0.4):
+def detect(rgb_path, ir_path="", offset_rel=0.4):
     '''
     Detection of cars in given rgb image path.
 
@@ -73,11 +83,10 @@ def detect(rgb_path, offset_rel=0.4):
     img = Image.open(rgb_path)
     global i
     # print(rgb_path)
-    print(i)
     i += 1
     detections = detectImage(img)
     inference_time = datetime.timedelta(seconds=time.time() - prev_time)
-    #print('Inference Time: %s' % (inference_time))
+    print('Inference Time: %s' % (inference_time))
 
     img = np.array(img)
     pad_x = max(img.shape[0] - img.shape[1], 0) * (img_size / max(img.shape))
@@ -85,12 +94,9 @@ def detect(rgb_path, offset_rel=0.4):
     unpad_h = img_size - pad_y
     unpad_w = img_size - pad_x
     if detections is not None:
-        print('detections is not None')
         nr = 0
         for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
-            if classes[int(cls_pred)] == "car":# or classes[int(cls_pred)] == "person":
-                print(classes[int(cls_pred)])
-                print(float(cls_conf))
+            if classes[int(cls_pred)] == "car":
                 box_h = ((y2 - y1) / unpad_h) * img.shape[0]
                 box_w = ((x2 - x1) / unpad_w) * img.shape[1]
                 offset_w = box_w * offset_rel
@@ -108,7 +114,7 @@ def detect(rgb_path, offset_rel=0.4):
                     y1 = 0
 
                 # crop image, save image and save txt file
-                saveCropped(rgb_path, nr, x1, y1, x2, y2, cls_conf)
+                saveCropped(rgb_path, nr, x1, y1, x2, y2, cls_conf, ir_path)
                 nr += 1
 
 for nr, (out_dict) in enumerate(train_loader):
@@ -118,7 +124,15 @@ for nr, (out_dict) in enumerate(train_loader):
     ir_fr = out_dict['ir_fr']
     paths_left = out_dict['paths_left']
     org_left = out_dict['org_left']
-
+    '''
+for rgb_fl, rgb_fr, ir_fl, ir_fr in train_loader:
+    rgb_path_left = paths_left[i][0]
+    ir_path_left = paths_ir_left[i][0]
+    print(rgb_path_left)
+    print(ir_path_left)
+    detect(rgb_path_left, ir_path_left)
+    '''
     for i in range(len(paths_left)):
         rgb_path_left = paths_left[i][0]
+        print(paths_left[i])
         detect(rgb_path_left)

@@ -9,12 +9,12 @@ import os
 import cv2
 import numpy as np
 
-transform = transforms.Compose([
-	# transforms.ToPILImage(),
-	# other transforms ??
-    transforms.Resize((224,224)),
-	transforms.ToTensor()
-])
+# transform = transforms.Compose([
+# 	# transforms.ToPILImage(),
+# 	# other transforms ??
+#     transforms.Resize((224,224)),
+# 	transforms.ToTensor()
+# ])
 
 class IRDataset(torchvision.datasets.ImageFolder):
 # class IRDataset(torch.utils.data.Dataset):
@@ -30,7 +30,7 @@ class IRDataset(torchvision.datasets.ImageFolder):
                 if f.endswith('.png'):
                     o = {}
                     o['img_path'] = dirpath + '/' + f
-                    o['category'] = self.cat2idx[dirpath[dirpath.find('/')+15:]]
+                    o['category'] = self.cat2idx[dirpath[dirpath.find('/')+1:]] # 0 and 1 as labels
                     self.files.append(o)
         self.transform = transform
 
@@ -46,17 +46,25 @@ class IRDataset(torchvision.datasets.ImageFolder):
         max = img.max()
         img = (img.astype(np.float32) - 24000) / (21500 - 24000)
         img = np.clip(img, 0, 1)
-        img = (img * 255).astype(np.uint8)
-        img_cv = cv2.applyColorMap(img, cv2.COLORMAP_JET)
+       
+        img_cv = (img * 255).astype(np.uint8)
+        img_cv = cv2.applyColorMap(img_cv, cv2.COLORMAP_JET)
+
+        img_3chan = np.array([[[s,s,s] for s in r] for r in img])
+
+        assert (img_3chan.shape == img_cv.shape)
+
+        img_cv = transforms.ToPILImage()(img_cv)
+        img_cv = transforms.Resize((224,224))(img_cv)
+        img_cv = transforms.ToTensor()(img_cv)
+
+        # transforms.Resize((224,224))
+        img_3chan = cv2.resize(img_3chan, (224, 224))
+        img_3chan = np.transpose(img_3chan, (1,0,2))
 
         if self.transform is not None:
-            img_cv = self.transform(img_cv)
+            img_3chan = self.transform(img_3chan)
+        
+        assert (img_cv.shape == img_3chan.shape)
 
-        # print(type(img_cv))
-        # cv2.imshow('win',img_cv)
-        # key = cv2.waitKey()
-        # if key == 27:
-        #     import sys
-        #     sys.exit()
-
-        return {'image': img_cv, 'category': category}
+        return {'image': img_3chan, 'category': category}

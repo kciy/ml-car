@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 
 
-def saveCropped(rgb_path, nr, x1, y1, x2, y2, cls_conf=None, kitti=False):
+def saveCropped(rgb_path, nr, x1, y1, x2, y2, cls_conf=None, kitti=False, ir_path_real=""):
     '''
     Saves cropped rgb, ir and txt to one folder named by rgb image path once
     per detected car above threshold for class confidence.
@@ -29,19 +29,17 @@ def saveCropped(rgb_path, nr, x1, y1, x2, y2, cls_conf=None, kitti=False):
     img_name = os.path.splitext(base)[0]
     img_dir = os.path.dirname(rgb_path) + '/' + img_name
     img_dir_ir = os.path.dirname(rgb_path) + '/' + img_name
-    if kitti is True:
-        rgb_save_dir = '{0}/{1}_{2}.det-kitti.png'.format(img_dir, img_name, str(nr))
-        ir_save_dir = '{0}/{1}_{2}.ir.det-kitti.png'.format(img_dir, img_name, str(nr))
-        txt_save_dir = '{0}/{1}_{2}.det-kitti.txt'.format(img_dir, img_name, str(nr))
-    else:
-        rgb_save_dir = '{0}/{1}_{2}.det.png'.format(img_dir, img_name, str(nr))
-        ir_save_dir = '{0}/{1}_{2}.ir.det.png'.format(img_dir_ir, img_name, str(nr))
-        txt_save_dir = '{0}/{1}_{2}.det.txt'.format(img_dir, img_name, str(nr))
+    
+    rgb_save_dir = '{0}/{1}_{2}.det.png'.format(img_dir, img_name, str(nr))
+    ir_save_dir = '{0}/{1}_{2}.ir.det.png'.format(img_dir_ir, img_name, str(nr))
+    txt_save_dir = '{0}/{1}_{2}.det.txt'.format(img_dir, img_name, str(nr))
 
     # only save if both RGB and IR exist and mask
-    if not os.path.isfile(rgb_path) or not os.path.isfile(ir_path):
-        #print(f'{ir_path} does not exist')
-        print('ir path doesnt exist')
+    if not os.path.isfile(rgb_path):
+        #print(f'{rgb_path} doesnt exist')
+        return
+    if not os.path.isfile(ir_path):
+        # print(f'{ir_path} doesnt exist')
         return
     
     dpi = 200.0
@@ -62,16 +60,24 @@ def saveCropped(rgb_path, nr, x1, y1, x2, y2, cls_conf=None, kitti=False):
     ir = cv2.imread(ir_path, cv2.IMREAD_ANYDEPTH)
     cropped_ir = ir[y1:y2, x1:x2]
     if cropped_ir[0].size == 0:
-        print('zero size')
+        # print('zero size')
         return
+    # ir_new = cv2.imread(ir_path_real, cv2.IMREAD_ANYDEPTH)
+    # cropped_ir_new = ir_new[y1:y2, x1:x2]
+    # if cropped_ir_new[0].size == 0:
+        # print('zero size)
+        # return
     
     if not irCoveredMask(cropped_ir):
         return
+    # if not irCoveredMask(cropped_ir_new):
+        # return
     if not os.path.exists(img_dir):
         os.makedirs(img_dir)
-        print('created new directory')
+        # print('created new directory')
     
     cv2.imwrite(ir_save_dir, cropped_ir)
+    # cv2.imwrite(ir_save_dir_new, cropped_ir_new)
 
     # save rgb + txt
     fig.savefig(rgb_save_dir, dpi=dpi, bbox_inches='tight', pad_inches=0.0)

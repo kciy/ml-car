@@ -90,7 +90,7 @@ class ThermalDataLoader(data.Dataset):
                 self.list_dataset_paths.append([frames_left, frames_right, frames_left_ir, frames_right_ir])
 
         self.length = len(self.list_dataset_paths)
-        print("Current number of image pair in thermal dataset: %d " % (self.length))
+        print("Current number of image pairs in thermal dataset: %d " % (self.length))
 
     def __getitem__(self, index):
         paths = self.list_dataset_paths[index]

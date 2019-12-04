@@ -1,38 +1,46 @@
 /export/
-16_14_06_day
-    16_14_06 cp & det & labels => 661 cars/2515 images (26.28%) & training1 & moved
-10_10_19_day
-    17_42_32 cp & det & labels => 606 cars/2087 images (29.04%) & training1 & moved
-    17_52_31 cp & det & labels => 956 cars/2385 images (40.08%) & moved
-        insecure: fl_rgb_1570723229_541838160_0.det.png
-                  fl_rgb_1570723218_3536216560_0.det.png
-                  fl_rgb_1570723080_4782003840_2.det.png
-                  fl_rgb_1570723219_5431998160_1.det.png
-    18_02_31 cp & det & labels => 937 cars/2500 images (37.48%) & moved
-    18_12_31 cp & /home/ & det & labels => 449 cars/2275 images (19.74%) & moved
-    18_22_31 cp & /home/ & det & labels => 62 cars/670 images (9.25%) & moved
-10_10_19_night
-    19_46_53 cp & /home/ & det & labels => 303 cars/2510 images (12.07%) & moved
-    19_56_52 cp & /home/ & det & labels => 146 cars/2505 images (5.83%) & moved
-    20_06_52 cp & /home/ & det & labels => 183 cars/2495 images (7.33%) & moved
-    20_16_52 cp & /home/ & det & labels => 5 cars/2490 images (0.20%) & moved
-    20_26_53 cp & /home/ & det & labels => 160 cars/2445 images (6.54%) & moved
-    20_36_52 cp & /home/ & det & labels => 22 cars/1555 images (1.41%) & moved
+(1) _ir_aligned
+08_21_day
+    16_14_06 cp & labels => 558 cars/2515 images
+10_10_day
+    17_42_32 cp & labels => 834 cars/2455 images
+    17_52_31 cp & labels => 928 cars/2385 images
+    18_02_31 cp & labels => 917 cars/2500 images
+    18_12_31 cp & /home/ & labels => 446 cars/2275 images
+    18_22_31 cp & /home/ & labels => 62 cars/670 images
+10_10_night
+    19_46_53 cp & /home/ & labels => 303 cars/2510 images
+    19_56_52 cp & /home/ & labels => 146 cars/2505 images
+    20_06_52 cp & /home/ & labels => 182 cars/2495 images 
+    20_16_52 cp & /home/ & labels => 5 cars/2490 images 
+    20_26_53 cp & /home/ & labels => 159 cars/2445 images 
+    20_36_52 cp & /home/ & labels => 22 cars/1555 images 
 
+Combined:
+    Total: 4562
+    Inactive: 755 (16.55%)
+    Active: 3807 (83.45%)
 Day: 
-    Total: 3671 
-    Inactive: 621 (16.92%)
-    Active: 3023 (82.35%)
+    Total: 3745 / 4562 (82.09%)
+    Inactive: 607 / 3745 (16.21%) (20% Testset: 121)
+    Active: 3138 / 3745 (83.79%) (20% Testset: 627)
 Night:
-    Total: 819
-    Inactive: 169 (20.63%)
-    Active: 650 (79.37%)
+    Total: 817 / 4562 (17.91%)
+    Inactive: 148 (18.12%) (20% Testset: 29)
+    Active: 669 (81.88%) (20% Testset: 133)
 
-ActiveCarModel
+
+ActiveCarModel (very small old dataset)
 1: num_epochs=20,  lr=1e-3, batch_size=10, optim=SGD, valid_size=0.2 (training1)
 2: num_epochs=100, lr=1e-3, batch_size=10, optim=SGD, valid_size=0.2 (training1)
 3: num_epochs=100, lr=1e-3, batch_size=10, optim=SGD, valid_size=0.2 (training1)
 4: num_epochs=100, lr=1e-2, batch_size=10, optim=SGD, valid_size=0.2 (training1)
 
+ActiveCarModel (new complete dataset: DAY)
+0: num_epochs=10,  lr=1e-2, batch_size=10, optim=SGD, valid_size=0.1
+1: num_epochs=10,  lr=1e-2, batch_size=16, optim=SGD, valid_size=0.1
+
 copy files from pearl:
 scp -o ProxyJump=schwarzv@aislogin.informatik.uni-freiburg.de schwarzv@pearl2:/home/schwarzv/... /home/viki/...
+
+scp -o ProxyJump=schwarzv@aislogin.informatik.uni-freiburg.de /home/viki/Documents/Informatik/BA/drive_all_day_train/* schwarzv@pearl2:/home/schwarzv/Documents/drive_all_day_train
