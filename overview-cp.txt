@@ -21,24 +21,18 @@ Combined:
     Inactive: 755 (16.55%)
     Active: 3807 (83.45%)
 Day: 
-    Total: 3745 / 4562 (82.09%)
-    Inactive: 607 / 3745 (16.21%) (20% Testset: 121)
-    Active: 3138 / 3745 (83.79%) (20% Testset: 627)
+    Total: 3745 / 4562 (82.09%) 
+    Inactive: 607 / 3745 (16.21%) (20% Test set: 121)
+    Active: 3138 / 3745 (83.79%) (20% Test set: 627)
 Night:
     Total: 817 / 4562 (17.91%)
-    Inactive: 148 (18.12%) (20% Testset: 29)
-    Active: 669 (81.88%) (20% Testset: 133)
-
-
-ActiveCarModel (very small old dataset)
-1: num_epochs=20,  lr=1e-3, batch_size=10, optim=SGD, valid_size=0.2 (training1)
-2: num_epochs=100, lr=1e-3, batch_size=10, optim=SGD, valid_size=0.2 (training1)
-3: num_epochs=100, lr=1e-3, batch_size=10, optim=SGD, valid_size=0.2 (training1)
-4: num_epochs=100, lr=1e-2, batch_size=10, optim=SGD, valid_size=0.2 (training1)
+    Inactive: 148 (18.12%) (20% Test set: 29)
+    Active: 669 (81.88%) (20% Test set: 133)
 
 ActiveCarModel (new complete dataset: DAY)
-0: num_epochs=10,  lr=1e-2, batch_size=10, optim=SGD, valid_size=0.1
-1: num_epochs=10,  lr=1e-2, batch_size=16, optim=SGD, valid_size=0.1
+3: num_epochs=30, lr=1e-2, batch_size=64, optim=SGD, valid_size=0.1 (resnet normalization values, Yannis)
+4: num_epochs=30, lr=1e-2, batch_size=32, optim=SGD, valid_size=0.1 (resnet normalization values)
+5: num_epochs=30, lr=1e-2, batch_size=32, optim=SGD, valid_size=0.1 (resnet normalization values)
 
 copy files from pearl:
 scp -o ProxyJump=schwarzv@aislogin.informatik.uni-freiburg.de schwarzv@pearl2:/home/schwarzv/... /home/viki/...
