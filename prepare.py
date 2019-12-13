@@ -4,6 +4,41 @@ import shutil
 import cv2
 from PIL import Image, ImageTk
 import numpy as np
+import torch
+from torch.utils.data import DataLoader
+from torch.utils.data.dataset import Dataset
+import torchvision
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+
+def normalize():
+    '''
+    print mean and std for given dataset
+    '''
+    dataset = datasets.ImageFolder('drive_all_train',
+                               transform=transforms.Compose([
+                                   transforms.CenterCrop(224),
+                                   transforms.ToTensor()]))
+
+    loader = DataLoader(dataset,
+                        batch_size=10,
+                        num_workers=3,
+                        shuffle=False)
+    mean = 0.
+    std = 0.
+    for images, _ in loader:
+        # batch size (the last batch can have smaller size!)
+        batch_samples = images.size(0)
+        images = images.view(batch_samples, images.size(1), -1)
+        mean += images.mean(2).sum(0)
+        std += images.std(2).sum(0)
+
+    mean /= len(loader.dataset)
+    std /= len(loader.dataset)
+
+    print('mean: ', mean)
+    print('std: ', std)
+
 
 def sort_data():
     '''
@@ -41,7 +76,7 @@ def sort_data():
         shutil.copy(f, dst1)
         
 
-def normalize(scale_min, ir_path):
+def normalize_image(scale_min, ir_path):
     # normlizes an image by path, returns normalized as cv2 format
     min, max = scale_min, 24000
     im = cv2.imread(ir_path, cv2.IMREAD_ANYDEPTH)
@@ -72,8 +107,8 @@ def rand_data(subset_size=0.2):
     '''
     Move randomized data of size subset_size (%) from src to dst
     '''
-    src = "/home/viki/Documents/Informatik/BA/drive_all_night/active"
-    dst = "/home/viki/Documents/Informatik/BA/drive_all_night_test_20/active"
+    src = "/home/viki/Documents/Informatik/BA/drive_all_train/inactive"
+    dst = "/home/viki/Documents/Informatik/BA/drive_all_test_20/inactive"
     sub_dirs = [x[0] for x in os.walk(src)]
     all_files = []
     for folder in sub_dirs:
@@ -164,11 +199,42 @@ def delete_false_dets():
         print(f"Done {i}/{len(lines)}")
 
 
+def plot():
+    fn = [11, 11, 11, 11, 11, 10, 9, 8, 7, 4,4,2,5,4,4,3,3,1,2,1,2,1,3,2,2,4,2,2,1,2,1,2,1,1,1,3,1,1,1,1,4,1,2,1,2,1,1,1,1,2]
+    fp = [0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,1,1,2,1,1,0,1,2,1,1,0,1,1,1,2,1,1,1,0,1,0,1,0,1,0,1,0,1]
+    plt.figure(6)
+    plt.plot(fp, label="False positives")
+    plt.plot(fn, label="False negatives")
+    plt.grid()
+    plt.legend(frameon=False)
+
+    plt.show()
+
+
+def show_img_from_file():
+    txt_path = "ActiveCarModel19fp.txt"
+    fin = open(txt_path, "r")
+    lines = fin.readlines()
+    for line in lines:
+        img = normalize_image(21000, line)
+        cv2.imshow('window', img)
+        key = cv2.waitKey()
+        if key == 27:
+            cv2.destroyAllWindows()
 
 if __name__ == "__main__":
+    # normalize()
     # sort_data()
     # show_data()
-    rand_data()
+    # rand_data()
     # rename_paths()
     # delete_false_dets()
+    # plot()
+    show_img_from_file()
 
+    '''
+    copy files from pearl:
+    scp -o ProxyJump=schwarzv@aislogin.informatik.uni-freiburg.de schwarzv@pearl2:/home/schwarzv/... /home/viki/...
+
+    scp -o ProxyJump=schwarzv@aislogin.informatik.uni-freiburg.de /home/viki/Documents/Informatik/BA/drive_all_day_train/* schwarzv@pearl2:/home/schwarzv/Documents/drive_all_day_train
+    '''
