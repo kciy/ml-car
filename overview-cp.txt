@@ -28,14 +28,14 @@ Night:
     Active: 669 / 817 (81.88%) (20% Test set: 133)
 
 ActiveCarModel (DAY) change Normalize to [0.5094, 0.5094, 0.5094], [0.3474, 0.3474, 0.3474]
-16: 8ourp9td num_epochs=50,  lr=1e-4, batch_size=64, optim=Adam, valid_size=0.1 (Yannis, nn.Linear(512, 2), LeakyRelu(0.3), ReduceLROnPlateau(val_acc))
-19: quiet-deluge-299 aqamw7no num_epochs=50,  lr=1e-4, batch_size=64, optim=Adam, valid_size=0.1 (Yannis, nn.Linear(512, 2), LeakyRelu(0.3), ReduceLROnPlateau(val_loss), img_augm, fp/fn, LR=1e-5 from epoch=36, LR=1e-6 from epoch=47)
+11: cdfrk9yv mild-river-389 100epochs, pretrained=True, freezed none, lr=1e-3, angle=-30,30, epoch90: 1e-4
+13: 1sv62nza expert-grass-403 100epochs, pretrained=True, freezed none, lr=1e-3, angle=-30,30, epoch66: 1e-4
 
 ActiveCarModel (NIGHT) change Normalize to [0.6968, 0.6968, 0.6968], [0.2580, 0.2580, 0.2580]
-14: xiqz531b num_epochs=50,  lr=1e-4, batch_size=64, optim=Adam, valid_size=0.1 (Yannis, nn.Linear(512, 2), LeakyRelu(0.3), ReduceLROnPlateau(val_acc))
-17: cuctrnga num_epochs=50,  lr=1e-4, batch_size=64, optim=Adam, valid_size=0.1 (Yannis, nn.Linear(512, 2), LeakyRelu(0.3), ReduceLROnPlateau(val_acc), LR=1e-7 from epoch=40)
-18: quiet-sunset-297 rtz9d2y3 num_epochs=50,  lr=1e-4, batch_size=64, optim=Adam, valid_size=0.1 (Yannis, nn.Linear(512, 2), LeakyRelu(0.3), ReduceLROnPlateau(val_loss), img_augm, fp/fn)
+8: day0f1k2 50epochs, pretrained=False, freezed all, lr=1e-3, angle=-30,30
+9: 11eaq375 100epochs, pretrained=True, freezed all, lr=1e-3, angle=-30,30
+10: 77etm5aa stilted-dust-374 100epochs, pretrained=True, freezed none, lr=1e-3, angle=-30,30, epoch63: 1e-4, epoch77: 1e-5, epoch88: 1e-6
+12: 6dwn3xdr tough-glade-402 100epochs, pretrained=True, freezed none, lr=1e-3, angle=-30,30, epoch55: 1e-4, epoch84: 1e-5, epoch95: 1e-6
 
 ActiveCarModel (COMBINED) change Normalize to [0.5432, 0.5432, 0.5432], [0.3317, 0.3317, 0.3317]
-15: vxou887o num_epochs=50,  lr=1e-4, batch_size=64, optim=Adam, valid_size=0.1 (Yannis, nn.Linear(512, 2), LeakyRelu(0.3), ReduceLROnPlateau(val_acc))
-20: neat-monkey-301 gglgcbqd num_epochs=50,  lr=1e-4, batch_size=64, optim=Adam, valid_size=0.1 (Yannis, nn.Linear(512, 2), LeakyRelu(0.3), ReduceLROnPlateau(val_loss), img_augm, fp/fn, LR=1e-5 from epoch=26, LR=1e-6 from epoch=37, LR=1e-7 from epoch=48)
+14: wfr3nvou bumbling-donkey-404 100epochs, pretrained=True, freezed none, lr=1e-3, angle=-30,30

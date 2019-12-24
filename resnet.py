@@ -8,22 +8,21 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.optim import lr_scheduler
 from torchvision import datasets, transforms, models
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
-from sklearn.metrics import f1_score
-from IRDataset import IRDataset
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import precision_score, recall_score, f1_score, precision_recall_curve, plot_precision_recall_curve, average_precision_score
+from IRDataset import IRDataset, IRDatasetTest
 import time
 import datetime
 import wandb
 
-dir_0 = 'drive_all_night_train'
-dir_1 = 'drive_all_day_train'
-dir_2 = 'drive_all_train'
+
+dir_0 = 'drive_all_night'
+dir_1 = 'drive_all_day'
+dir_2 = 'drive_all'
 
 #####
-data_dir = dir_1
-modelname = 'ActiveCarModel21.pth'
+data_dir = dir_2
+modelname = 'ActiveCarModel14.pth'
 #####
 
 mean_0 = [0.6968, 0.6968, 0.6968]
@@ -43,7 +42,6 @@ if data_dir == dir_2:
     mean, std = mean_2, std_2
 
 wandb.init(project="active-car-project")
-wandb.config["more"] = "custom"
 
 image_transforms = transforms.Compose([
                                     transforms.ToTensor(),
@@ -52,14 +50,17 @@ image_transforms = transforms.Compose([
 
 print(f'Starting time: {datetime.datetime.now()}')
 
-num_epochs = 50
+num_epochs = 100
 batch_size = 64
-valid_size = 0.1
+test_size = 0.2
+
+wandb.config.epochs = num_epochs
+wandb.config.batch_size = batch_size
 
 # load data
-def load_split_train_val(datadir, size=0.1):
+def load_split_train_test(datadir, size=0.2):
     train_data = IRDataset(data_dir, transform=image_transforms)
-    val_data = IRDataset(data_dir, transform=image_transforms)
+    test_data = IRDatasetTest(data_dir, transform=image_transforms)
     
     num_train = len(train_data)
     indices = list(range(num_train))
@@ -67,39 +68,46 @@ def load_split_train_val(datadir, size=0.1):
     np.random.shuffle(indices)
 
     from torch.utils.data.sampler import SubsetRandomSampler
-    train_idx, val_idx = indices[split:], indices[:split]
+    train_idx, test_idx = indices[split:], indices[:split]
     train_sampler = SubsetRandomSampler(train_idx)
-    val_sampler = SubsetRandomSampler(val_idx)
+    test_sampler = SubsetRandomSampler(test_idx)
     train_loader = torch.utils.data.DataLoader(train_data,
                    sampler=train_sampler, batch_size=batch_size)
-    val_loader = torch.utils.data.DataLoader(val_data,
-                   sampler=val_sampler, batch_size=batch_size)
+    test_loader = torch.utils.data.DataLoader(test_data,
+                   sampler=test_sampler, batch_size=batch_size)
 
-    return train_loader, val_loader
+    return train_loader, test_loader, train_data, test_data
 
 dset = IRDataset(data_dir, transform=image_transforms)
 print('Number of images: ', len(dset))
 print('Number of categories: ', len(dset.categories))
 
-train_loader, val_loader = load_split_train_val(data_dir, valid_size)
+train_loader, test_loader, train_data, test_data = load_split_train_test(data_dir, test_size)
 images, labels, _ = next(iter(train_loader))
 model = torchvision.models.resnet18(pretrained=True)
+'''
+X_train, X_test, y_train, y_test = [], [], [], []
+for i in range(len(train_data)):
+    X_train.append(train_data[i]["image"])
+    y_train.append(train_data[i]["category"])
+for i in range(len(test_data)):
+    X_test.append(test_data[i]["image"])
+    y_test.append(test_data[i]["category"])
+'''
+#print(X_train, y_train)
+#print(X_test, y_test)
 
 device = torch.device("cuda" if torch.cuda.is_available() 
                                   else "cpu")
-for param in model.parameters():
-    param.requires_grad = False
+#for param in model.parameters():
+#    param.requires_grad = False
 
-num_features = model.fc.in_features
-model.fc = nn.Sequential(nn.Linear(512, 512), # 2048, 512
-                                 nn.LeakyReLU(0.3), 
-                                 nn.Dropout(0.2),
-                                 nn.Linear(512, 2),
-                                 nn.LogSoftmax(dim=1))
+num_features = model.fc.in_features                    
+model.fc = nn.Sequential(nn.Linear(num_features, 2), nn.LogSoftmax(dim=1))
 
 criterion = nn.NLLLoss().to(device)  # negative log-likelihood
 
-optimizer = optim.Adam(model.fc.parameters(), lr=1e-4)
+optimizer = optim.Adam(model.fc.parameters(), lr=1e-3)
 scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', verbose=True)
 model.to(device)
 
@@ -110,30 +118,34 @@ train_loss_history = []
 precision_history = []
 recall_history = []
 f1_history = []
-fp_history = []
-fn_history = []
 
-precision = 0.
-recall = 0.
-f1 = 0.
+fp_history = []
+fpr_history = []
+fn_history = []
+tp_history = []
+tn_history = []
 
 def validate(model):
     val_acc = 0.0
     val_loss = 0.0
-    model.eval()
-    running_precision = []
-    running_recall = []
-    running_f1 = []
     fp = 0
     fn = 0
+    tp = 0
+    tn = 0
+    running_recall = []
 
+    running_precision = []
+    running_f1 = []
+
+    model.eval()
     with torch.no_grad():
         ii = 0
-        for i, batch in enumerate(val_loader):
+        for i, batch in enumerate(test_loader):
             ii += 1
             print(ii, end='\r')
             images, labels = batch["image"].to(device), batch["category"].to(device)
             outputs = model(images)
+            #outputs = torch.exp(outputs)
             _, preds = torch.max(outputs, 1)
             loss = criterion(outputs, labels)
 
@@ -141,38 +153,45 @@ def validate(model):
             val_acc += torch.sum(labels.data == preds).item()
 
             for j in range(len(labels.cpu().numpy())):
+                tn_bool = labels.cpu().numpy()[j] == 0 and preds.cpu().numpy()[j] == 0
                 fp_bool = labels.cpu().numpy()[j] == 0 and preds.cpu().numpy()[j] == 1
                 fn_bool = labels.cpu().numpy()[j] == 1 and preds.cpu().numpy()[j] == 0
+                tp_bool = labels.cpu().numpy()[j] == 1 and preds.cpu().numpy()[j] == 1
+        
                 fp += fp_bool
                 fn += fn_bool
-                img_paths = batch["img_path"]
-                if fp_bool:
-                    txt_path = modelname[:16] + 'fp.txt'
-                    with open(txt_path, "a") as file:
-                        file.write(f"{img_paths[j]}\n")
-                if fn_bool:
-                    txt_path = modelname[:16] + 'fn.txt'
-                    with open(txt_path, "a") as file:
-                        file.write(f"{img_paths[j]}\n")
+                tp += tp_bool
+                tn += tn_bool
 
-            precision = precision_score(labels.cpu().numpy(), preds.cpu().numpy())
-            recall = recall_score(labels.cpu().numpy(), preds.cpu().numpy())
-            f1 = f1_score(labels.cpu().numpy(), preds.cpu().numpy())
-            running_precision.append(precision)
-            running_recall.append(recall)
-            running_f1.append(f1)
+                img_paths = batch["img_path"]
+                
+            running_precision.append(precision_score(labels.cpu().numpy(), preds.cpu().numpy()))    
+            running_recall.append(recall_score(labels.cpu().numpy(), preds.cpu().numpy()))     
+            running_f1.append(f1_score(labels.cpu().numpy(), preds.cpu().numpy()))     
+
+            precision, recall, _ = precision_recall_curve(labels.cpu().numpy(), preds.cpu().numpy())
+            print(precision, recall)
+            print(running_precision, running_recall)
+            print('----------')
+            precision_history.append(precision_score(labels.cpu().numpy(), preds.cpu().numpy()))
+            recall_history.append(recall_score(labels.cpu().numpy(), preds.cpu().numpy()))
+            f1_history.append(f1_score(labels.cpu().numpy(), preds.cpu().numpy()))
+
+            fpr = fp / (fp + tn)
         
         print(f"false positives: {fp}")
         print(f"false negatives: {fn}")
+        print(f"true positives: {tp}")
+        print(f"true negatives: {tn}")
+        print(f"false positive rate: {fpr}")
 
         fp_history.append(fp)
         fn_history.append(fn)
+        tp_history.append(tp)
+        tn_history.append(tn)
+        fpr_history.append(fpr)
 
-        precision_history.append(np.mean(running_precision))
-        recall_history.append(np.mean(running_recall))
-        f1_history.append(np.mean(running_f1))
-
-        return val_loss, val_acc
+        return val_loss, val_acc, running_recall, running_precision, running_f1
 
 def train(num_epochs):
     best_acc = 0.0
@@ -190,6 +209,7 @@ def train(num_epochs):
             images, labels = batch["image"].to(device), batch["category"].to(device)
             optimizer.zero_grad()
             outputs = model(images)
+            #outputs = torch.exp(outputs)
             _, preds = torch.max(outputs, 1)
             loss = criterion(outputs, labels)
             
@@ -201,29 +221,28 @@ def train(num_epochs):
             train_acc += torch.sum(preds == labels.data).item() 
         
         print("\n")
-        val_loss, val_acc = validate(model)
+        val_loss, val_acc, recall, precision, f1 = validate(model)
         
-        len_train_loader = int(np.ceil(len(dset) * (1 - valid_size)))
-        len_val_loader = int(np.floor(len(dset) * valid_size))
-        print(len(train_loader.sampler))
-        print(len_train_loader)
-        print(len(val_loader.sampler))
-        print(len_val_loader)
+        len_train_loader = int(np.ceil(len(dset) * (1 - test_size)))
+        len_test_loader = int(np.floor(len(dset) * test_size))
 
         train_acc /= len_train_loader
         train_loss /= len_train_loader
 
-        val_acc /= len_val_loader
-        val_loss /= len_val_loader
+        val_acc /= len_test_loader
+        val_loss /= len_test_loader
 
         scheduler.step(val_loss)
+        recall = np.mean(recall)
+        precision = np.mean(precision)
+        f1 = np.mean(f1)
 
         val_acc_history.append(val_acc)
         val_loss_history.append(val_loss)
         train_acc_history.append(train_acc)
         train_loss_history.append(train_loss)
         
-        wandb.log({"train loss": train_loss, "val loss": val_loss, "train acc": train_acc, "val acc": val_acc, "precision": precision_history[-1], "recall": recall_history[-1], "f1 score": f1_history[-1]}, step=epoch)
+        wandb.log({"train loss": train_loss, "val loss": val_loss, "train acc": train_acc, "val acc": val_acc, "recall": recall, "precision": precision} , step=epoch)
 
         time_elapsed = time.time() - since
         print("Duration: {:.0f}h {:.0f}min {:.0f}s".format(time_elapsed // 3600, (time_elapsed % 3600 // 60), time_elapsed % 60),
@@ -232,42 +251,41 @@ def train(num_epochs):
               "Validation Accuracy: {:.3f}".format(val_acc),
               "Train Loss: {:.3f}".format(train_loss),
               "Validation Loss: {:.3f}".format(val_loss),
-              "Precision: {:.3f}".format(precision_history[-1]),
-              "Recall: {:.3f}".format(recall_history[-1]),
-              "F1 Score: {:.3f}".format(f1_history[-1])
+              "Precision: {:.3f}".format(precision),
+              "Recall: {:.3f}".format(recall),
+              "F1 Score: {:.3f}".format(f1)
              )
 
 def plot_metrics():
-    plt.figure(1)
+    plt.figure("Accuracy")
     plt.plot(val_acc_history, label='Validation Accuracy')
     plt.plot(train_acc_history, label='Train Accuracy')
     plt.grid()
     plt.legend(frameon=False)
 
-    plt.figure(2)
+    plt.figure("Loss")
     plt.plot(val_loss_history, label="Validation Loss")
     plt.plot(train_loss_history, label="Train Loss")
     plt.grid()
     plt.legend(frameon=False)
 
-    plt.figure(3)
+    plt.figure("Precision")
     plt.plot(precision_history, label="Precision")
     plt.grid()
     plt.legend(frameon=False)
     
-    plt.figure(4)
+    plt.figure("Recall")
     plt.plot(recall_history, label="Recall")
     plt.grid()
     plt.legend(frameon=False)
     
-    plt.figure(5)
+    plt.figure("F1")
     plt.plot(f1_history, label="F1 Score")
     plt.grid()
     plt.legend(frameon=False)
 
-    plt.figure(6)
-    plt.plot(fp_history, label="False positives")
-    plt.plot(fn_history, label="False negatives")
+    plt.figure("FPR")
+    plt.plot(fpr_history, label="false positive rate")
     plt.grid()
     plt.legend(frameon=False)
 
@@ -281,6 +299,13 @@ if __name__ == "__main__":
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}h {:.0f}min {:.0f}s'.format(time_elapsed // 3600, (time_elapsed % 3600 // 60), time_elapsed % 60))
-
     torch.save(model, modelname)
+    
+    from numpy import asarray, savetxt
+    j = 0
+    for hist_name in [fp_history, fn_history, tp_history, tn_history, precision_history, recall_history, f1_history, fpr_history]:
+        data = asarray(hist_name)
+        filename = str(j) + ".txt"
+        savetxt(filename, data)
+        j += 1
     plot_metrics()

@@ -78,19 +78,20 @@ def sort_data():
 
 def normalize_image(scale_min, ir_path):
     # normlizes an image by path, returns normalized as cv2 format
-    min, max = scale_min, 24000
+    min, max = 21000, 24200
     im = cv2.imread(ir_path, cv2.IMREAD_ANYDEPTH)
     im = im.astype(np.uint16)
     im = (im.astype(np.float32) - min) / (max - min)
     im = np.clip(im, 0, 1)
     im = (im * 255).astype(np.uint8)
     im_cv = cv2.applyColorMap(im, cv2.COLORMAP_JET)
-    im_cv = cv2.bitwise_not(im_cv) # reverse colormap
+    #im_cv = cv2.bitwise_not(im_cv) # reverse colormap
 
     return im_cv
 
+
 def show_data():
-    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/test2/active"
+    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/fl_rgb/"
     sub_dirs = [x[0] for x in os.walk(src)]
 
     for folder in sub_dirs:
@@ -200,27 +201,83 @@ def delete_false_dets():
 
 
 def plot():
-    fn = [11, 11, 11, 11, 11, 10, 9, 8, 7, 4,4,2,5,4,4,3,3,1,2,1,2,1,3,2,2,4,2,2,1,2,1,2,1,1,1,3,1,1,1,1,4,1,2,1,2,1,1,1,1,2]
-    fp = [0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,1,1,2,1,1,0,1,2,1,1,0,1,1,1,2,1,1,1,0,1,0,1,0,1,0,1,0,1]
+    # fn = [11, 11, 11, 11, 11, 10, 9, 8, 7, 4,4,2,5,4,4,3,3,1,2,1,2,1,3,2,2,4,2,2,1,2,1,2,1,1,1,3,1,1,1,1,4,1,2,1,2,1,1,1,1,2]
+    # fp = [0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,0,0,0,1,1,2,1,1,0,1,2,1,1,0,1,1,1,2,1,1,1,0,1,0,1,0,1,0,1,0,1]
+    precRec = []
+    '''
     plt.figure(6)
-    plt.plot(fp, label="False positives")
-    plt.plot(fn, label="False negatives")
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.plot(precRec)
+    plt.plot(fn)
     plt.grid()
     plt.legend(frameon=False)
+    '''
+    import pandas as pd
+
+    recall = [0, 0.1, 0.2, 0.4, 0.8]
+    precision = [1, 0.1, 0.95, 0.2, 0.7]
+
+    df = pd.DataFrame({'x': recall, 'y1': precision})
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.plot('x', 'y1', data=df, marker="", linewidth=1.15)
 
     plt.show()
 
 
 def show_img_from_file():
-    txt_path = "ActiveCarModel19fp.txt"
-    fin = open(txt_path, "r")
+    image_path = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_52_31/fl_ir/fl_ir_1570722756_5403258402.png"
+    img = normalize_image(21000,image_path)
+    cv2.imshow('window', img)
+    key = cv2.waitKey()
+    if key == 27:
+        cv2.destroyAllWindows()
+
+        
+def avg_array():
+    txt0 = "/home/viki/Documents/Informatik/von ya/6dwn3xdr/f1_history.txt" # night
+    txt1 = "/home/viki/Documents/Informatik/von ya/1sv62nza/f1_history.txt" # day
+    txt2 = "/home/viki/Documents/Informatik/von ya/wfr3nvou/f1_history.txt" # combined
+
+    fin = open(txt0, "r")
     lines = fin.readlines()
-    for line in lines:
-        img = normalize_image(21000, line)
-        cv2.imshow('window', img)
-        key = cv2.waitKey()
-        if key == 27:
-            cv2.destroyAllWindows()
+    avg = 0
+    best = 0
+    for i in lines:
+        avg += float(i)
+        if float(i) > best:
+            best = float(i)
+    print("best f1 night: ", best)
+    print("avg f1 night: ", avg/len(lines))
+    print('-------')
+
+    fin = open(txt1, "r")
+    lines = fin.readlines()
+    avg = 0
+    best = 0
+    for i in lines:
+        avg += float(i)
+        if float(i) > best:
+            best = float(i)
+    print("best f1 day: ", best)
+    print("avg f1 day: ", avg/len(lines))
+    print('-------')
+
+    fin = open(txt2, "r")
+    lines = fin.readlines()
+    avg = 0
+    best = 0
+    for i in lines:
+        avg += float(i)
+        if float(i) > best:
+            best = float(i)
+    print("best f1 combined: ", best)
+    print("avg f1 combined: ", avg/len(lines))
 
 if __name__ == "__main__":
     # normalize()
@@ -229,8 +286,9 @@ if __name__ == "__main__":
     # rand_data()
     # rename_paths()
     # delete_false_dets()
-    # plot()
-    show_img_from_file()
+    #plot()
+    #show_img_from_file()
+    avg_array()
 
     '''
     copy files from pearl:

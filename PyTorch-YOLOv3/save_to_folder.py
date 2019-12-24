@@ -68,8 +68,8 @@ def saveCropped(rgb_path, nr, x1, y1, x2, y2, cls_conf=None, kitti=False, ir_pat
         # print('zero size)
         # return
     
-    if not irCoveredMask(cropped_ir):
-        return
+    #if not irCoveredMask(cropped_ir):
+    #    return
     # if not irCoveredMask(cropped_ir_new):
         # return
     if not os.path.exists(img_dir):
