@@ -27,15 +27,26 @@ Night:
     Inactive: 148 / 817 (18.12%) (20% Test set: 29)
     Active: 669 / 817 (81.88%) (20% Test set: 133)
 
+After clean: -292 inactive, -863 active (-1155 total)
+
+Night: 137 test images
+Day: 548 test images
+Combined: 729 test images
+
 ActiveCarModel (DAY) change Normalize to [0.5094, 0.5094, 0.5094], [0.3474, 0.3474, 0.3474]
-11: cdfrk9yv mild-river-389 100epochs, pretrained=True, freezed none, lr=1e-3, angle=-30,30, epoch90: 1e-4
-13: 1sv62nza expert-grass-403 100epochs, pretrained=True, freezed none, lr=1e-3, angle=-30,30, epoch66: 1e-4
+2: glorious-plane-455 ikz93sb7 epochs=150, pretrained=True, LR: epoch=43 lr=1e-4, epoch=55 lr=1e-5, epoch=66 lr=1e-6, epoch=77 lr=1e-7, epoch=88 lr=1e-8
+4: NEW NORM super-microwave-463 bylr6gcr LR: epoch=35-1e-4 epoch=46-1e-5 epoch=58-1e-6 epoch=69-1e-7 epoch=80-1e-8
+6: NEW NORM, with ReLU, num_epochs=60, toasty-snowball-466 ty08l86j LR: epoch=
+7: NEW NORM, with LeakyReLU(0.3), num_epochs=60, gentle-dragon-470 evfyjnyg LR: epoch=
+8: NEW NORM, with Linear, LeakyReLU(0.3), Dropout(0.2), celestial-oath-469 uyjivl4r num_epochs=60,  LR: epoch=
+10: new-data solar-planet-472 8w8dtjgf, epoch=59-1e-4
 
 ActiveCarModel (NIGHT) change Normalize to [0.6968, 0.6968, 0.6968], [0.2580, 0.2580, 0.2580]
-8: day0f1k2 50epochs, pretrained=False, freezed all, lr=1e-3, angle=-30,30
-9: 11eaq375 100epochs, pretrained=True, freezed all, lr=1e-3, angle=-30,30
-10: 77etm5aa stilted-dust-374 100epochs, pretrained=True, freezed none, lr=1e-3, angle=-30,30, epoch63: 1e-4, epoch77: 1e-5, epoch88: 1e-6
-12: 6dwn3xdr tough-glade-402 100epochs, pretrained=True, freezed none, lr=1e-3, angle=-30,30, epoch55: 1e-4, epoch84: 1e-5, epoch95: 1e-6
+1: wise-bush-454 qe03eedi epochs=150, pretrained=True, LR: epoch=75 lr=1e-4, epoch=102 lr=1e-5, epoch=120 lr=1e-6, epoch=131 lr=1e-7, epoch=142 lr=1e-8
+5: NEW NORM lilac-waterfall-464 tb64jevb LR: epoch=57-1e-4 epoch=73-1e-5 epoch=84-1e-6 epoch=95-1e-7 epoch=106-1e-8
+9: new-data misunderstood-cloud-471 m9p7f701, epoch=19-1e-4, epoch=30-1e-5, epoch=41-1e-6, epoch=52-1e-7
+12: new-data, new-mod celestial-smoke-487 3q57g8ry
 
 ActiveCarModel (COMBINED) change Normalize to [0.5432, 0.5432, 0.5432], [0.3317, 0.3317, 0.3317]
-14: wfr3nvou bumbling-donkey-404 100epochs, pretrained=True, freezed none, lr=1e-3, angle=-30,30
+3: NEW NORM clean-sponge-465 dsc2jqns LR: epoch=51-1e-4 epoch=62-1e-5 epoch=73-1e-6 epoch=84-1e-7 epoch=95-1e-8
+11: new-data cosmic-deluge-473 moo3sz7e, epoch=45-1e-4, epoch=56-1e-5

@@ -28,8 +28,8 @@ class IRDataset(torchvision.datasets.ImageFolder):
             for f in filenames:
                 if f.endswith('.png'):
                     o = {}
-                    o['img_path'] = dirpath + '\\' + f
-                    o['category'] = self.cat2idx[dirpath[dirpath.find('\\')+1:]] # 0 and 1 as labels
+                    o['img_path'] = dirpath + '/' + f
+                    o['category'] = self.cat2idx[dirpath[dirpath.find('/')+1:]] # 0 and 1 as labels
                     self.files.append(o)
         self.transform = transform
 
@@ -40,23 +40,30 @@ class IRDataset(torchvision.datasets.ImageFolder):
         img_path = self.files[idx]['img_path']
         category = self.files[idx]['category']
         img = cv2.imread(img_path, cv2.IMREAD_ANYDEPTH)
-        img = (img.astype(np.float32) - 24000) / (21500 - 24000)
+        img = (img.astype(np.float32) - 24000) / (21800 - 24000)
         img = np.clip(img, 0, 1)
         img_3chan = np.array([[[s,s,s] for s in r] for r in img])
 
         ## image augmentations
         random_rotate = random()
         random_flip_vertical = random()
-        img_3chan = rotateImage(img_3chan, 90)
         
         if random_flip_vertical > 0.5:
             img_3chan = cv2.flip(img_3chan, 0)
         if random_rotate > 0.4:
-            random_angle = randint(-30, 30)
+            random_angle = randint(-20, 20)
             img_3chan = rotateImage(img_3chan, random_angle)
         
         img_3chan = cv2.resize(img_3chan, (224, 224))
-        img_3chan = np.transpose(img_3chan, (1,0,2))
+        # SHOW IMAGES
+        # img_3chan = (img_3chan * 255).astype(np.uint8)
+        # img_3chan = cv2.applyColorMap(img_3chan, cv2.COLORMAP_JET)
+        # img_3chan = cv2.bitwise_not(img_3chan) # reverse colormap
+
+        # cv2.imshow("win", img_3chan)
+        # key = cv2.waitKey()
+        # if key == 27:
+        #     cv2.destroyAllWindows()
 
         if self.transform is not None: # ToTensor() and Normalize(mean, std)
             img_3chan = self.transform(img_3chan)
@@ -76,8 +83,8 @@ class IRDatasetTest(torchvision.datasets.ImageFolder):
             for f in filenames:
                 if f.endswith('.png'):
                     o = {}
-                    o['img_path'] = dirpath + '\\' + f
-                    o['category'] = self.cat2idx[dirpath[dirpath.find('\\')+1:]] # 0 and 1 as labels
+                    o['img_path'] = dirpath + '/' + f
+                    o['category'] = self.cat2idx[dirpath[dirpath.find('/')+1:]] # 0 and 1 as labels
                     self.files.append(o)
         self.transform = transform
 
@@ -88,13 +95,10 @@ class IRDatasetTest(torchvision.datasets.ImageFolder):
         img_path = self.files[idx]['img_path']
         category = self.files[idx]['category']
         img = cv2.imread(img_path, cv2.IMREAD_ANYDEPTH)
-        img = (img.astype(np.float32) - 24000) / (21500 - 24000)
+        img = (img.astype(np.float32) - 24000) / (21800 - 24000)
         img = np.clip(img, 0, 1)
         img_3chan = np.array([[[s,s,s] for s in r] for r in img]) 
-
-        img_3chan = rotateImage(img_3chan, 90)
         img_3chan = cv2.resize(img_3chan, (224, 224))
-        img_3chan = np.transpose(img_3chan, (1,0,2))
 
         if self.transform is not None: # ToTensor() and Normalize(mean, std)
             img_3chan = self.transform(img_3chan)

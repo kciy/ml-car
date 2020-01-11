@@ -79,6 +79,7 @@ def sort_data():
 def normalize_image(scale_min, ir_path):
     # normlizes an image by path, returns normalized as cv2 format
     min, max = 21000, 24200
+    min, max = 21800, 24000
     im = cv2.imread(ir_path, cv2.IMREAD_ANYDEPTH)
     im = im.astype(np.uint16)
     im = (im.astype(np.float32) - min) / (max - min)
@@ -89,27 +90,38 @@ def normalize_image(scale_min, ir_path):
 
     return im_cv
 
+def false_det(src, filename):
+    txt_save_dir = f"{src}/false_detected.txt"
+    with open(txt_save_dir, "a") as txt_file:
+        print(f"{filename}", file=txt_file)
 
 def show_data():
-    src = "/home/viki/Documents/Informatik/BA/drive_day_2019_08_21_16_14_06/fl_rgb/"
+    # src = "/home/viki/Documents/Informatik/BA/drive_all_day" # active 3138, inactive 607
+    # src = "/home/viki/Documents/Informatik/BA/drive_all_night" # active 669, inactive 148
+    src = "/home/viki/Documents/Informatik/BA/drive_all" # active 3807, inactive 755 (4562)
     sub_dirs = [x[0] for x in os.walk(src)]
-
+    i = 0
     for folder in sub_dirs:
+        print(folder)
         for file in os.listdir(folder):
             if file.endswith('.png'):
+                i += 1
+                print(i)
                 filename = os.path.join(folder, file)
-                image_cv = normalize(22500, filename)
-                cv2.imshow('window', image_cv)
+                image_cv = normalize_image(22500, filename)
+                image_cv = cv2.resize(image_cv, (224, 224))
+                cv2.imshow(folder.rsplit('/')[7], image_cv)
                 key = cv2.waitKey()
-                if key == 27:
+                if key == 102: # f for false! (also for exit)
+                    false_det(src, filename)
                     cv2.destroyAllWindows()
 
 def rand_data(subset_size=0.2):
     '''
     Move randomized data of size subset_size (%) from src to dst
     '''
-    src = "/home/viki/Documents/Informatik/BA/drive_all_train/inactive"
-    dst = "/home/viki/Documents/Informatik/BA/drive_all_test_20/inactive"
+    src = "/home/viki/Documents/Informatik/BA/drive_all_day_train/active"
+    dst = "/home/viki/Documents/Informatik/BA/drive_all_day_test_20/active"
     sub_dirs = [x[0] for x in os.walk(src)]
     all_files = []
     for folder in sub_dirs:
@@ -279,16 +291,52 @@ def avg_array():
     print("best f1 combined: ", best)
     print("avg f1 combined: ", avg/len(lines))
 
+def sort_out():
+    srctxt = "/home/viki/Documents/Informatik/BA/drive_all/false_detected.txt"
+    a = 0
+    d = 0
+    n = 0
+
+    lines = open(srctxt, 'r').readlines()
+    if True:
+        for img in lines:
+            img = img.rsplit('/')[6] + '/' + \
+                  img.rsplit('/')[7] + '/' + \
+                  img.rsplit('/')[8]
+            img_day = img.rsplit('/')[0] + '_day/' + \
+                      img.rsplit('/')[1] + '/' + \
+                      img.rsplit('/')[2]
+            img_night = img.rsplit('/')[0] + '_night/' + \
+                      img.rsplit('/')[1] + '/' + \
+                      img.rsplit('/')[2]
+            img = img[:-1]
+            img_day = img_day[:-1]
+            img_night = img_night[:-1]
+            if os.path.isfile(img):
+                os.remove(img)
+                a += 1
+                print(f"all: {a}, day: {d}, night: {n}")
+            if os.path.isfile(img_day):
+                os.remove(img_day)
+                d += 1
+                print(f"all: {a}, day: {d}, night: {n}")
+            if os.path.isfile(img_night):
+                os.remove(img_night)
+                n += 1
+                print(f"all: {a}, day: {d}, night: {n}")
+
+
 if __name__ == "__main__":
     # normalize()
     # sort_data()
     # show_data()
-    # rand_data()
+    rand_data()
     # rename_paths()
     # delete_false_dets()
-    #plot()
-    #show_img_from_file()
-    avg_array()
+    # plot()
+    # show_img_from_file()
+    # avg_array()
+    # sort_out()
 
     '''
     copy files from pearl:
