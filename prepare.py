@@ -78,8 +78,8 @@ def sort_data():
 
 def normalize_image(scale_min, ir_path):
     # normlizes an image by path, returns normalized as cv2 format
-    min, max = 21000, 24200
-    min, max = 21800, 24000
+    min, max = 21900, 24000
+    # min, max = 21800, 25000
     im = cv2.imread(ir_path, cv2.IMREAD_ANYDEPTH)
     im = im.astype(np.uint16)
     im = (im.astype(np.float32) - min) / (max - min)
@@ -120,8 +120,8 @@ def rand_data(subset_size=0.2):
     '''
     Move randomized data of size subset_size (%) from src to dst
     '''
-    src = "/home/viki/Documents/Informatik/BA/drive_all_day_train/active"
-    dst = "/home/viki/Documents/Informatik/BA/drive_all_day_test_20/active"
+    src = "/home/viki/Documents/Informatik/BA/new/drive_all_train/inactive"
+    dst = "/home/viki/Documents/Informatik/BA/new/drive_all_test_20/inactive"
     sub_dirs = [x[0] for x in os.walk(src)]
     all_files = []
     for folder in sub_dirs:
@@ -243,8 +243,9 @@ def plot():
 
 
 def show_img_from_file():
-    image_path = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_52_31/fl_ir/fl_ir_1570722756_5403258402.png"
-    img = normalize_image(21000,image_path)
+    image_path = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_17_42_32/fl_rgb/fl_rgb_1570722215_5711910320/fl_rgb_1570722215_5711910320_0.ir.det.png"
+    # image_path = "/home/viki/Documents/Informatik/BA/drive_day_2019_10_10_20_16_52/fl_rgb/fl_rgb_1570731880_368301480/fl_rgb_1570731880_368301480_0.ir.det.png"
+    img = normalize_image(21000, image_path)
     cv2.imshow('window', img)
     key = cv2.waitKey()
     if key == 27:
@@ -325,18 +326,37 @@ def sort_out():
                 n += 1
                 print(f"all: {a}, day: {d}, night: {n}")
 
+def resize_imgs():
+    src = "/home/viki/Documents/Informatik/BA/drive_all_train/inactive"
+    dst = "/home/viki/Documents/Informatik/BA/new/drive_all_train/inactive"
+    i = 0
+    for file in os.listdir(src):
+        i += 1
+        filename = os.path.join(src, file)
+        img = cv2.imread(filename, cv2.IMREAD_ANYDEPTH)
+        old_w, old_h = img.shape[1], img.shape[0]
+        new_w, new_h = img.shape[1] / 1.38, img.shape[0] / 1.38
+        diff_w_2, diff_h_2 = (old_w-new_w)/2, (old_h-new_h)/2
+        crop_img = img[int(diff_h_2):int(new_h+diff_h_2), int(diff_w_2):int(new_w+diff_w_2)]
+
+        file_dst = dst + '/' + file
+        cv2.imwrite(file_dst, crop_img)
+        print(f"imwrite {i}")
+
+
 
 if __name__ == "__main__":
     # normalize()
     # sort_data()
     # show_data()
-    rand_data()
+    # rand_data()
     # rename_paths()
     # delete_false_dets()
     # plot()
-    # show_img_from_file()
+    show_img_from_file()
     # avg_array()
     # sort_out()
+    # resize_imgs()
 
     '''
     copy files from pearl:

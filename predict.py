@@ -18,7 +18,7 @@ from sklearn.metrics import confusion_matrix, classification_report, roc_auc_sco
 
 since = time.time()
 
-dir_n = 'drive_all_night_test_20_backup'
+dir_n = 'drive_all_night_test_20'
 dir_d = 'drive_all_day_test_20_backup'
 dir_c = 'drive_all_test_20_backup'
 
@@ -26,7 +26,7 @@ dir_c = 'drive_all_test_20_backup'
 # 2/4/6/7/8/10 day
 # 3/11 combined
 ####
-MODELPATH = "/home/viki/Documents/Informatik/BA/ActiveCarModel6.pth"
+MODELPATH = "/home/viki/Documents/Informatik/BA/ActiveCarModel12.pth"
 data_dir = dir_c
 ####
 
@@ -49,9 +49,9 @@ if data_dir == dir_c:
 def load_model(MODELPATH):
     model = torchvision.models.resnet18(num_classes=2)
     num_features = model.fc.in_features
-    model.fc = nn.Sequential(#nn.Linear(num_features, 512),
-                             #nn.LeakyReLU(0.3), 
-                             #nn.Dropout(0.1), 
+    model.fc = nn.Sequential(nn.Linear(num_features, 512),
+                             nn.LeakyReLU(0.3), 
+                             nn.Dropout(0.1), 
                              nn.Linear(num_features, 2), 
                              nn.LogSoftmax(dim=1))
 
@@ -124,6 +124,7 @@ def calc_roc(outputs, labels, step):
 with torch.no_grad():
     for i, batch in enumerate(test_loader):
         images, labels = batch["image"].to(device), batch["category"].to(device)
+        print(images.shape)
         outputs = model(images)
         outputs = torch.exp(outputs)
         _, preds = torch.max(outputs, 1)

@@ -14,6 +14,7 @@ from IRDataset import IRDataset, IRDatasetTest
 import time
 import datetime
 import wandb
+from torchsummary import summary
 
 
 dir_0 = 'drive_all_night'
@@ -78,22 +79,26 @@ def load_split_train_test(datadir, size=0.1):
 
     return train_loader, test_loader, train_data, test_data
 
-dset = IRDataset(data_dir, transform=image_transforms)
-print('Number of images: ', len(dset))
-print('Number of categories: ', len(dset.categories))
+# dset = IRDataset(data_dir, transform=image_transforms)
+# print('Number of images: ', len(dset))
+# print('Number of categories: ', len(dset.categories))
 
-train_loader, test_loader, train_data, test_data = load_split_train_test(data_dir, test_size)
-images, labels, _ = next(iter(train_loader))
+# train_loader, test_loader, train_data, test_data = load_split_train_test(data_dir, test_size)
+# images, labels, _ = next(iter(train_loader))
 model = torchvision.models.resnet18(pretrained=True)
 device = torch.device("cuda" if torch.cuda.is_available() 
                                   else "cpu")
 num_features = model.fc.in_features
+# print(model)
+summary(model, (3, 224, 224))
 model.fc = nn.Sequential(nn.Linear(num_features, 512),
                          nn.LeakyReLU(0.3),
-                         nn.Dropout(0.2),
+                         nn.Dropout(0.1),
                          nn.Linear(num_features, 2),
                          nn.LogSoftmax(dim=1))
-
+print('-----------')
+# print(model)
+summary(model, (3, 224, 224))
 criterion = nn.NLLLoss().to(device)  # negative log-likelihood
 
 optimizer = optim.Adam(model.parameters(), lr=1e-3) # model.fc.parameters()
